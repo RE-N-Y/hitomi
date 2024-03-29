@@ -24,11 +24,7 @@ export default function Layout({ params, children }: LayoutProps) {
     if (content === "/") {
       return <BreadcrumbSeparator key={key} />;
     } else if (last) {
-      return (
-        <BreadcrumbPage key={key}>
-          <BreadcrumbLink href={`/${path}`}> {content}</BreadcrumbLink>
-        </BreadcrumbPage>
-      );
+      return <BreadcrumbPage key={key}>{content}</BreadcrumbPage>;
     } else {
       return (
         <BreadcrumbItem key={key}>
@@ -49,7 +45,7 @@ export default function Layout({ params, children }: LayoutProps) {
       <Breadcrumb>
         <BreadcrumbList>
           {paths.map((part, index) =>
-            render(index, part, cumpaths[index], index === path.length - 1),
+            render(index, part, cumpaths[index], index === paths.length - 1),
           )}
         </BreadcrumbList>
       </Breadcrumb>
