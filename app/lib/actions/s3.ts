@@ -10,8 +10,8 @@ import {
   _Object,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { FetchResult } from "@/app/components/paginater";
 import { s3 } from "@/app/lib/services";
+import { FetchResult } from "@/app/components/paginate";
 
 const getPresignedURL = async (bucket: string, key: string) => {
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
@@ -35,8 +35,11 @@ const listFolders = async (
   const response = await s3.send(folderCommand);
   const folders = response.CommonPrefixes || [];
   return {
+    bucket,
+    type: "folder",
     items: folders.filter(({ Prefix }) => Prefix !== key + "/"),
     bookmark: response.NextContinuationToken,
+    
   };
 };
 
@@ -44,7 +47,7 @@ const listFiles = async (
   bucket: string,
   key: string,
   chunk: number,
-  bookmark: string,
+  bookmark?: string,
 ): Promise<FetchResult<_Object>> => {
   const fileCommand = new ListObjectsV2Command({
     Bucket: bucket,
@@ -54,9 +57,17 @@ const listFiles = async (
   });
 
   const response = await s3.send(fileCommand);
+  const files = response.Contents || [];
+  const items = await Promise.all(files.map(async (file) => {
+    const url = await getPresignedURL(bucket, file.Key);
+    return { ...file, url };
+  }));
   return {
-    items: response.Contents || [],
+    bucket,
+    type: "file",
+    items,
     bookmark: response.NextContinuationToken,
+    
   };
 };
 

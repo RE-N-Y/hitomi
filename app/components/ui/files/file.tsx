@@ -6,28 +6,25 @@ import {
   CardHeader,
   CardFooter,
 } from "@/app/components/ui/card";
-import ImagePreview from "./preview/image";
 import { FileIcon } from "lucide-react";
+import Image from "next/image";
 
 interface FileProps {
   bucket: string;
   name: string;
+  url: string;
   size?: number;
   lastModified?: number;
 }
 
-const renderPreview = (bucket: string, name: string, type: string) => {
+const renderPreview = (url:string, type: string) => {
   switch (type) {
     case "png":
     case "jpg":
     case "jpeg":
       return (
         <div className="overflow-y-hidden">
-          <ImagePreview
-            className="w-full rounded"
-            bucket={bucket}
-            name={name}
-          />
+          <Image src={url} width={512} height={512} alt="image" />
         </div>
       );
     default:
@@ -50,7 +47,7 @@ export default function File(props: FileProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid aspect-video gap-4">
-        {renderPreview(props.bucket, props.name, type)}
+        {renderPreview(props.url, type)}
       </CardContent>
     </Card>
   );

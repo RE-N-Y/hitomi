@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getPresignedURL } from "@/app/lib/actions";
+import * as s3 from "@/app/lib/actions/s3";
 
 interface ImagePreviewProps {
   className?: string;
@@ -8,7 +8,7 @@ interface ImagePreviewProps {
 }
 
 export default async function ImagePreview(props: ImagePreviewProps) {
-  const src = await getPresignedURL(props.bucket, props.name);
+  const src = await s3.getPresignedURL(props.bucket, props.name);
   return (
     <Image
       className={props.className}
