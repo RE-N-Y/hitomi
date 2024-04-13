@@ -48,7 +48,8 @@ const listFiles = async (
   key: string,
   chunk: number,
   bookmark?: string,
-): Promise<FetchResult<_Object>> => {
+  suffix?: string[],
+): Promise<FetchResult<_Object>> => {  
   const fileCommand = new ListObjectsV2Command({
     Bucket: bucket,
     Prefix: key,
@@ -57,11 +58,16 @@ const listFiles = async (
   });
 
   const response = await s3.send(fileCommand);
-  const files = response.Contents || [];
+  let files = response.Contents || [];
+  if (suffix) {
+    files = files.filter(({ Key }) => suffix.some((ext) => Key.endsWith(ext)));
+  }
+
   const items = await Promise.all(files.map(async (file) => {
     const url = await getPresignedURL(bucket, file.Key);
     return { ...file, url };
   }));
+
   return {
     bucket,
     type: "file",

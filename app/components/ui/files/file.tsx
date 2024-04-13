@@ -8,6 +8,7 @@ import {
 } from "@/app/components/ui/card";
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface FileProps {
   bucket: string;
@@ -24,7 +25,9 @@ const renderPreview = (url:string, type: string) => {
     case "jpeg":
       return (
         <div className="overflow-y-hidden">
-          <Image src={url} width={512} height={512} alt="image" />
+          <Link href={url}>
+            <Image src={url} width={512} height={512} alt="image" />
+          </Link>
         </div>
       );
     default:
