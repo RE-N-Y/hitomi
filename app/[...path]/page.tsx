@@ -1,5 +1,6 @@
 import * as s3 from "@/app/lib/actions/s3";
 import Paginate from "../components/paginate";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 export default async function Page({ params }: { params: { path: string[] } }) {
   const [bucket, ...key] = params.path;
@@ -21,10 +22,20 @@ export default async function Page({ params }: { params: { path: string[] } }) {
 
   return (
     <div className="m-4">
-      <h1 className="my-4 text-2xl font-bold">Folders</h1>
+      <Tabs defaultValue="files">
+        <TabsList>
+          <TabsTrigger value="folders">Folders</TabsTrigger>
+          <TabsTrigger value="files">Files</TabsTrigger>
+        </TabsList>
+        <TabsContent value="folders">
+        <h1 className="my-4 text-2xl font-bold">Folders</h1>
       <Paginate initialResults={folderInitialResults} fetchItems={fetchFolders(bucket, path)} />
-      <h1 className="my-4 text-2xl font-bold pr-4 mr-4 border-r border-r-zinc-500">Files</h1>
+        </TabsContent>
+        <TabsContent value="files">
+        <h1 className="my-4 text-2xl font-bold">Files</h1>
       <Paginate initialResults={filesInitialResults} fetchItems={fetchFiles(bucket, path)} enableFilter />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

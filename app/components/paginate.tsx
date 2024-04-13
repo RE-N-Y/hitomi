@@ -125,15 +125,16 @@ export default function Paginate<T>({ initialResults,  fetchItems, enableFilter 
         <div className="flex flex-col gap-3">
             {renderFilter()}
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                {displayResults.items.map(renderItem)}
+                {displayResults.items.length > 0 ? displayResults.items.map(renderItem) : <div>No items</div>}
             </div>
+            {displayResults.items.length > 0 && (
             <div className="flex justify-center">
                 {hasNext && (
                     <Button onClick={loadMore}>
                         Load More
                     </Button>
                 )}
-            </div>
+            </div>)}
         </div>
     );
 }

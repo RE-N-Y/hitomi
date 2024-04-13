@@ -4,7 +4,7 @@
 
 - [ ] Add image previewer
 - [ ] Support more file types
-- [ ] File vs Folder toggle
+- [x] File vs Folder toggle
 - [ ] Gallery view
 - [x] File type filter
 - [ ] Max items

@@ -1,3 +1,4 @@
+import { PackageOpenIcon, PaintBucketIcon } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -42,6 +43,8 @@ export default function Layout({ params, children }: LayoutProps) {
 
   return (
     <div className="p-4">
+      <div className="flex gap-3">
+        <PackageOpenIcon />
       <Breadcrumb>
         <BreadcrumbList>
           {paths.map((part, index) =>
@@ -49,7 +52,9 @@ export default function Layout({ params, children }: LayoutProps) {
           )}
         </BreadcrumbList>
       </Breadcrumb>
+      </div>
       {children}
+
     </div>
   );
 }
