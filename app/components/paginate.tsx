@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Folder from "./ui/files/folder";
 import File from "./ui/files/file";
 import { Button } from "./ui/button";
+import { Masonry, useInfiniteLoader } from "masonic";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 
 
@@ -20,30 +21,35 @@ export interface FetchResult<T> {
     type: "file" | "folder";
 }
 
-export default function Paginate<T>({ initialResults,  fetchItems, enableFilter }: PaginateProps<FetchResult<T>>) {
+interface S3Item {
+    id: string;
+    url: string;
+    Key: string;
+    Prefix: string;
+    LastModified: number;
+}
+
+export default function Paginate<T extends S3Item>({ initialResults, fetchItems, enableFilter }: PaginateProps<FetchResult<T>>) {
     const [results, setResults] = useState(initialResults);
     const [displayResults, setDisplayResults] = useState(results);
     const [hasNext, setHasNext] = useState(!!results.bookmark);
+    const loadMore = useInfiniteLoader(async (startIndex, stopIndex, currentItems) => {
+        const newResults = await fetchItems(results.bookmark);
+        setHasNext(!!newResults.bookmark);
+        const updatedResults = {
+            ...newResults,
+            items: [...results.items, ...newResults.items]
+        };
+        setResults(updatedResults);
+    }, 
+    {
+        isItemLoaded: (index, items) => !!items[index],
+        minimumBatchSize: 32,
+        threshold: 3
+    });
 
     const [type, setType] = useState("all");
     const [date, setDate] = useState("oldest");
-
-    const renderItem = (item:T) => {
-        switch (results.type) {
-            case "folder":
-                return (
-                    <div key={item.Prefix}>
-                        <Folder bucket={results.bucket} name={item.Prefix} />
-                    </div>
-                );
-            case "file":
-                return (
-                    <div key={item.Key}>
-                        <File bucket={results.bucket} name={item.Key} lastModified={item.LastModified} url={item.url} />
-                    </div>
-                );
-        }
-    }
 
     const type2suffix = (type: string) => {
         switch (type) {
@@ -60,33 +66,33 @@ export default function Paginate<T>({ initialResults,  fetchItems, enableFilter 
         }
     }
 
-    const loadMore = async () => {
-        const newResults = await fetchItems(results.bookmark, type2suffix(type));
-        setHasNext(!!newResults.bookmark);
-        const updatedResults = {
-            ...newResults,
-            items: [...results.items, ...newResults.items]
-        };
-        setResults(updatedResults);
+    const getURLSuffix = (url: string) => {
+        // e.g. https://pixiv.s3.us-east-1.wasabisys.com/2024-02-18/116123522.jpg?...... > .jpg
+        const [baseUrl, ..._] = url.split('?');
+        const match = baseUrl.match(/\.([^\/]+)$/)
+        return match ? match[1] : ''
+    }
+
+    const S3ItemCard = ({ index, data, width } : { index:number, data:T, width:number }) => {
+        switch (results.type) {
+            case "folder":
+                return (
+                    <div key={data.Prefix}>
+                        <Folder bucket={results.bucket} name={data.Prefix} />
+                    </div>
+                );
+            case "file":
+                return (
+                    <div key={data.Key}>
+                        <File bucket={results.bucket} name={data.Key} lastModified={data.LastModified} url={data.url} />
+                    </div>
+                );
+        }
     }
 
     useEffect(() => {
         setDisplayResults(results);
     }, [results]);
-
-    useEffect(() => {
-        const suffix = type2suffix(type);
-        if (!suffix) {
-            setDisplayResults(results);
-            return;
-        }
-        setDisplayResults({
-            ...results,
-            items: results.items.filter((item) => {
-                return suffix.some((ext) => item.Key.endsWith(ext))
-            })
-        })
-    }, [type, results]);
 
     const renderFilter = () => {
         if (!enableFilter) {
@@ -124,7 +130,16 @@ export default function Paginate<T>({ initialResults,  fetchItems, enableFilter 
     return (
         <div className="flex flex-col gap-3">
             {renderFilter()}
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <Masonry 
+                items={displayResults.items} 
+                render={S3ItemCard} 
+                onRender={loadMore}
+                columnGutter={4} 
+                overscanBy={1.25} 
+                ssrWidth={386}
+                columnWidth={386}
+            />
+            {/* <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {displayResults.items.length > 0 ? displayResults.items.map(renderItem) : <div>No items</div>}
             </div>
             {displayResults.items.length > 0 && (
@@ -134,7 +149,7 @@ export default function Paginate<T>({ initialResults,  fetchItems, enableFilter 
                         Load More
                     </Button>
                 )}
-            </div>)}
+            </div>)} */}
         </div>
     );
 }

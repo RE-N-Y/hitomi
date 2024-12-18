@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "*.s3.wasabisys.com",
       },
+      {
+        protocol: "https",
+        hostname: "*.s3.*.wasabisys.com",
+      },
     ],
   },
 };

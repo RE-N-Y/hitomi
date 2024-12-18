@@ -24,7 +24,7 @@ const renderPreview = (url:string, type: string) => {
     case "jpg":
     case "jpeg":
       return (
-        <div className="overflow-y-hidden">
+        <div>
           <Link href={url}>
             <Image src={url} width={512} height={512} alt="image" />
           </Link>
